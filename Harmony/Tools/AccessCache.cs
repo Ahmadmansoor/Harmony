@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 
 namespace Harmony
@@ -9,7 +8,7 @@ namespace Harmony
 	{
 		Dictionary<Type, Dictionary<string, FieldInfo>> fields = new Dictionary<Type, Dictionary<string, FieldInfo>>();
 		Dictionary<Type, Dictionary<string, PropertyInfo>> properties = new Dictionary<Type, Dictionary<string, PropertyInfo>>();
-		readonly Dictionary<Type, Dictionary<string, Dictionary<int, MethodBase>>> methods = new Dictionary<Type, Dictionary<string, Dictionary<int, MethodBase>>>();
+		readonly Dictionary<Type, Dictionary<string, Dictionary<Type[], MethodBase>>> methods = new Dictionary<Type, Dictionary<string, Dictionary<Type[], MethodBase>>>();
 
 		public FieldInfo GetFieldInfo(Type type, string name)
 		{
@@ -51,47 +50,30 @@ namespace Harmony
 			return property;
 		}
 
-		static int CombinedHashCode(IEnumerable<object> objects)
-		{
-			int hash1 = (5381 << 16) + 5381;
-			int hash2 = hash1;
-			int i = 0;
-			foreach (var obj in objects)
-			{
-				if (i % 2 == 0)
-					hash1 = ((hash1 << 5) + hash1 + (hash1 >> 27)) ^ obj.GetHashCode();
-				else
-					hash2 = ((hash2 << 5) + hash2 + (hash2 >> 27)) ^ obj.GetHashCode();
-				++i;
-			}
-			return hash1 + (hash2 * 1566083941);
-		}
-
 		public MethodBase GetMethodInfo(Type type, string name, Type[] arguments)
 		{
-			Dictionary<string, Dictionary<int, MethodBase>> methodsByName = null;
+			Dictionary<string, Dictionary<Type[], MethodBase>> methodsByName = null;
 			methods.TryGetValue(type, out methodsByName);
 			if (methodsByName == null)
 			{
-				methodsByName = new Dictionary<string, Dictionary<int, MethodBase>>();
+				methodsByName = new Dictionary<string, Dictionary<Type[], MethodBase>>();
 				methods.Add(type, methodsByName);
 			}
 
-			Dictionary<int, MethodBase> methodsByArguments = null;
+			Dictionary<Type[], MethodBase> methodsByArguments = null;
 			methodsByName.TryGetValue(name, out methodsByArguments);
 			if (methodsByArguments == null)
 			{
-				methodsByArguments = new Dictionary<int, MethodBase>();
+				methodsByArguments = new Dictionary<Type[], MethodBase>();
 				methodsByName.Add(name, methodsByArguments);
 			}
 
 			MethodBase method = null;
-			var argumentsHash = CombinedHashCode(arguments);
-			methodsByArguments.TryGetValue(argumentsHash, out method);
+			methodsByArguments.TryGetValue(arguments, out method);
 			if (method == null)
 			{
 				method = AccessTools.Method(type, name, arguments);
-				methodsByArguments.Add(argumentsHash, method);
+				methodsByArguments.Add(arguments, method);
 			}
 
 			return method;
