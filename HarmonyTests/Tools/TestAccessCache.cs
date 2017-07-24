@@ -42,12 +42,12 @@ namespace HarmonyTests
 		{
 			var f_methods = cache.GetType().GetField("methods", AccessTools.all);
 			Assert.IsNotNull(f_methods);
-			var methods = (Dictionary<Type, Dictionary<string, Dictionary<Type[], MethodInfo>>>)f_methods.GetValue(cache);
+			var methods = (Dictionary<Type, Dictionary<string, Dictionary<Type[], MethodBase>>>)f_methods.GetValue(cache);
 			Assert.IsNotNull(methods);
-			Dictionary<string, Dictionary<Type[], MethodInfo>> dicts;
+			Dictionary<string, Dictionary<Type[], MethodBase>> dicts;
 			methods.TryGetValue(typeof(AccessToolsClass), out dicts);
 			Assert.IsNotNull(dicts);
-			Dictionary<Type[], MethodInfo> infos;
+			Dictionary<Type[], MethodBase> infos;
 			dicts.TryGetValue("method", out infos);
 			Assert.IsNotNull(dicts);
 
