@@ -9,8 +9,6 @@ namespace Harmony.ILCopying
 	{
 		public static long WriteJump(long memory, long destination)
 		{
-			UnprotectMemoryPage(memory);
-
 			if (IntPtr.Size == sizeof(long))
 			{
 				memory = WriteBytes(memory, new byte[] { 0x48, 0xB8 });
